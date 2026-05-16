@@ -1,15 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Activity, Brain, CheckCircle2, Video } from "lucide-react";
+import { useState } from "react";
+import { Activity, Brain, CheckCircle2, Video, StopCircle } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { clientNav } from "@/lib/client-nav";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { PoseTracker } from "@/components/pose-tracker";
 
 export const Route = createFileRoute("/_authenticated/client/pose")({
   component: AITrackingPage,
 });
 
 function AITrackingPage() {
+  const [isActive, setIsActive] = useState(false);
+
   return (
     <DashboardLayout title="AI Tracking" nav={clientNav}>
       <div className="mx-auto max-w-4xl space-y-6">
@@ -20,10 +24,24 @@ function AITrackingPage() {
               <p className="mt-2 text-white/70">
                 Our AI tracking system analyzes your movement to ensure you're performing exercises correctly and safely.
               </p>
-              <Button className="mt-6 bg-white text-foreground hover:bg-white/90">
-                <Video className="mr-2 h-4 w-4" />
-                Start AI Coach
-              </Button>
+              {!isActive ? (
+                <Button 
+                  onClick={() => setIsActive(true)}
+                  className="mt-6 bg-white text-foreground hover:bg-white/90"
+                >
+                  <Video className="mr-2 h-4 w-4" />
+                  Start AI Coach
+                </Button>
+              ) : (
+                <Button 
+                  onClick={() => setIsActive(false)}
+                  variant="destructive"
+                  className="mt-6"
+                >
+                  <StopCircle className="mr-2 h-4 w-4" />
+                  Stop AI Coach
+                </Button>
+              )}
             </div>
             <div className="flex justify-center md:justify-end">
               <div className="relative">
@@ -35,6 +53,12 @@ function AITrackingPage() {
             </div>
           </div>
         </Card>
+
+        {isActive && (
+          <div className="animate-in fade-in zoom-in-95 duration-500">
+            <PoseTracker />
+          </div>
+        )}
 
         <div className="grid gap-6 md:grid-cols-2">
           <Card className="border-border bg-gradient-card p-6">
