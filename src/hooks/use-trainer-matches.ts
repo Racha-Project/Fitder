@@ -204,7 +204,8 @@ export function useTrainerMatches(clientId: string | undefined) {
       .select(
         `*, profile:profiles!trainer_profiles_user_id_fkey (full_name, avatar_url, gender, latitude, longitude)`,
       )
-      .in("user_id", ids);
+      .in("user_id", ids)
+      .eq("is_approved", true);
 
     const byId = new Map((trainers ?? []).map((t) => [t.user_id, t]));
     const cards: TrainerMatchCard[] = [];

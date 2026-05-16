@@ -31,7 +31,7 @@ function ClientDashboard() {
     <DashboardLayout title="Client Dashboard" nav={clientNav}>
       <div className="mx-auto max-w-5xl space-y-6">
         <Card className="overflow-hidden border-border bg-gradient-hero p-8 text-white shadow-elegant">
-          <h2 className="font-display text-3xl font-bold">Welcome to LachaFit</h2>
+          <h2 className="font-display text-3xl font-bold">Welcome to Fitder</h2>
           <p className="mt-2 text-white/70">Find trainers matched to your goals, budget, and location.</p>
           <Button asChild className="mt-6 bg-white text-foreground hover:bg-white/90">
             <Link to="/client/matches">
@@ -49,7 +49,7 @@ function ClientDashboard() {
               hint: matches.length ? "See ranked list" : "Run matching",
             },
             { label: "Upcoming sessions", value: "0", hint: "Book your first" },
-            { label: "Pose sessions", value: "0", hint: "Try AI form coach" },
+            { label: "AI Tracking", value: "0", hint: "Check your form" },
           ].map((s) => (
             <Card key={s.label} className="border-border bg-gradient-card p-6">
               <div className="text-sm text-muted-foreground">{s.label}</div>

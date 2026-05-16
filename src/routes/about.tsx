@@ -6,8 +6,8 @@ export const Route = createFileRoute("/about")({
   component: AboutPage,
   head: () => ({
     meta: [
-      { title: "About — LachaFit" },
-      { name: "description", content: "How LachaFit matches clients with trainers using AI compatibility scoring." },
+      { title: "About — Fitder" },
+      { name: "description", content: "How Fitder matches clients with trainers using AI compatibility scoring." },
     ],
   }),
 });
@@ -17,9 +17,9 @@ function AboutPage() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <section className="mx-auto max-w-3xl px-4 py-20 sm:px-6">
-        <h1 className="font-display text-5xl font-bold tracking-tight">About LachaFit</h1>
-        <p className="mt-6 text-lg text-muted-foreground">
-          LachaFit is an intelligent fitness platform that connects clients with personal trainers through smart compatibility matching, transparent booking, and AI-powered posture coaching.
+        <h1 className="font-display text-5xl font-bold tracking-tight">About Fitder</h1>
+        <p className="mt-6 text-xl text-muted-foreground leading-relaxed">
+          Fitder is an intelligent fitness platform that connects clients with personal trainers through smart compatibility matching, transparent booking, and AI-powered posture coaching.
         </p>
         <div className="mt-12 space-y-10">
           {steps.map((s, i) => (

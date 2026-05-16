@@ -11,7 +11,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/register")({
   component: RegisterPage,
-  head: () => ({ meta: [{ title: "Create account — LachaFit" }] }),
+  head: () => ({ meta: [{ title: "Create account — Fitder" }] }),
 });
 
 function RegisterPage() {
@@ -38,7 +38,7 @@ function RegisterPage() {
       toast.error(error.message);
       return;
     }
-    toast.success("Account created! Welcome to LachaFit.");
+    toast.success("Account created! Welcome to Fitder.");
     navigate({ to: role === "trainer" ? "/trainer" : "/client" });
   };
 

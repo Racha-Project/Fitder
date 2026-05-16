@@ -23,7 +23,11 @@ import { Route as AuthenticatedTrainerClientsRouteImport } from './routes/_authe
 import { Route as AuthenticatedTrainerBookingsRouteImport } from './routes/_authenticated/trainer/bookings'
 import { Route as AuthenticatedTrainerAvailabilityRouteImport } from './routes/_authenticated/trainer/availability'
 import { Route as AuthenticatedClientProfileRouteImport } from './routes/_authenticated/client/profile'
+import { Route as AuthenticatedClientPoseRouteImport } from './routes/_authenticated/client/pose'
 import { Route as AuthenticatedClientMatchesRouteImport } from './routes/_authenticated/client/matches'
+import { Route as AuthenticatedClientBookingsRouteImport } from './routes/_authenticated/client/bookings'
+import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
+import { Route as AuthenticatedAdminTrainersRouteImport } from './routes/_authenticated/admin/trainers'
 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
@@ -102,10 +106,32 @@ const AuthenticatedClientProfileRoute =
     path: '/client/profile',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedClientPoseRoute = AuthenticatedClientPoseRouteImport.update({
+  id: '/client/pose',
+  path: '/client/pose',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedClientMatchesRoute =
   AuthenticatedClientMatchesRouteImport.update({
     id: '/client/matches',
     path: '/client/matches',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedClientBookingsRoute =
+  AuthenticatedClientBookingsRouteImport.update({
+    id: '/client/bookings',
+    path: '/client/bookings',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
+  id: '/admin/users',
+  path: '/admin/users',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAdminTrainersRoute =
+  AuthenticatedAdminTrainersRouteImport.update({
+    id: '/admin/trainers',
+    path: '/admin/trainers',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 
@@ -114,7 +140,11 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/admin/trainers': typeof AuthenticatedAdminTrainersRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/client/bookings': typeof AuthenticatedClientBookingsRoute
   '/client/matches': typeof AuthenticatedClientMatchesRoute
+  '/client/pose': typeof AuthenticatedClientPoseRoute
   '/client/profile': typeof AuthenticatedClientProfileRoute
   '/trainer/availability': typeof AuthenticatedTrainerAvailabilityRoute
   '/trainer/bookings': typeof AuthenticatedTrainerBookingsRoute
@@ -130,7 +160,11 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/admin/trainers': typeof AuthenticatedAdminTrainersRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/client/bookings': typeof AuthenticatedClientBookingsRoute
   '/client/matches': typeof AuthenticatedClientMatchesRoute
+  '/client/pose': typeof AuthenticatedClientPoseRoute
   '/client/profile': typeof AuthenticatedClientProfileRoute
   '/trainer/availability': typeof AuthenticatedTrainerAvailabilityRoute
   '/trainer/bookings': typeof AuthenticatedTrainerBookingsRoute
@@ -148,7 +182,11 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/_authenticated/admin/trainers': typeof AuthenticatedAdminTrainersRoute
+  '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/_authenticated/client/bookings': typeof AuthenticatedClientBookingsRoute
   '/_authenticated/client/matches': typeof AuthenticatedClientMatchesRoute
+  '/_authenticated/client/pose': typeof AuthenticatedClientPoseRoute
   '/_authenticated/client/profile': typeof AuthenticatedClientProfileRoute
   '/_authenticated/trainer/availability': typeof AuthenticatedTrainerAvailabilityRoute
   '/_authenticated/trainer/bookings': typeof AuthenticatedTrainerBookingsRoute
@@ -166,7 +204,11 @@ export interface FileRouteTypes {
     | '/about'
     | '/login'
     | '/register'
+    | '/admin/trainers'
+    | '/admin/users'
+    | '/client/bookings'
     | '/client/matches'
+    | '/client/pose'
     | '/client/profile'
     | '/trainer/availability'
     | '/trainer/bookings'
@@ -182,7 +224,11 @@ export interface FileRouteTypes {
     | '/about'
     | '/login'
     | '/register'
+    | '/admin/trainers'
+    | '/admin/users'
+    | '/client/bookings'
     | '/client/matches'
+    | '/client/pose'
     | '/client/profile'
     | '/trainer/availability'
     | '/trainer/bookings'
@@ -199,7 +245,11 @@ export interface FileRouteTypes {
     | '/about'
     | '/login'
     | '/register'
+    | '/_authenticated/admin/trainers'
+    | '/_authenticated/admin/users'
+    | '/_authenticated/client/bookings'
     | '/_authenticated/client/matches'
+    | '/_authenticated/client/pose'
     | '/_authenticated/client/profile'
     | '/_authenticated/trainer/availability'
     | '/_authenticated/trainer/bookings'
@@ -319,6 +369,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientProfileRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/client/pose': {
+      id: '/_authenticated/client/pose'
+      path: '/client/pose'
+      fullPath: '/client/pose'
+      preLoaderRoute: typeof AuthenticatedClientPoseRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/client/matches': {
       id: '/_authenticated/client/matches'
       path: '/client/matches'
@@ -326,11 +383,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientMatchesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/client/bookings': {
+      id: '/_authenticated/client/bookings'
+      path: '/client/bookings'
+      fullPath: '/client/bookings'
+      preLoaderRoute: typeof AuthenticatedClientBookingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/users': {
+      id: '/_authenticated/admin/users'
+      path: '/admin/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/trainers': {
+      id: '/_authenticated/admin/trainers'
+      path: '/admin/trainers'
+      fullPath: '/admin/trainers'
+      preLoaderRoute: typeof AuthenticatedAdminTrainersRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAdminTrainersRoute: typeof AuthenticatedAdminTrainersRoute
+  AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
+  AuthenticatedClientBookingsRoute: typeof AuthenticatedClientBookingsRoute
   AuthenticatedClientMatchesRoute: typeof AuthenticatedClientMatchesRoute
+  AuthenticatedClientPoseRoute: typeof AuthenticatedClientPoseRoute
   AuthenticatedClientProfileRoute: typeof AuthenticatedClientProfileRoute
   AuthenticatedTrainerAvailabilityRoute: typeof AuthenticatedTrainerAvailabilityRoute
   AuthenticatedTrainerBookingsRoute: typeof AuthenticatedTrainerBookingsRoute
@@ -343,7 +425,11 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAdminTrainersRoute: AuthenticatedAdminTrainersRoute,
+  AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
+  AuthenticatedClientBookingsRoute: AuthenticatedClientBookingsRoute,
   AuthenticatedClientMatchesRoute: AuthenticatedClientMatchesRoute,
+  AuthenticatedClientPoseRoute: AuthenticatedClientPoseRoute,
   AuthenticatedClientProfileRoute: AuthenticatedClientProfileRoute,
   AuthenticatedTrainerAvailabilityRoute: AuthenticatedTrainerAvailabilityRoute,
   AuthenticatedTrainerBookingsRoute: AuthenticatedTrainerBookingsRoute,

@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { AvatarUpload } from "@/components/avatar-upload";
 
 export const Route = createFileRoute("/_authenticated/client/profile")({
   component: ClientProfilePage,
@@ -28,6 +29,7 @@ function ClientProfilePage() {
     preferred_trainer_gender: "no_preference",
     latitude: "",
     longitude: "",
+    avatar_url: "" as string | null,
   });
 
   useEffect(() => {
@@ -49,6 +51,7 @@ function ClientProfilePage() {
           preferred_trainer_gender: data.preferred_trainer_gender ?? "no_preference",
           latitude: data.latitude?.toString() ?? "",
           longitude: data.longitude?.toString() ?? "",
+          avatar_url: data.avatar_url ?? null,
         });
       }
       setLoading(false);
@@ -61,6 +64,17 @@ function ClientProfilePage() {
       (pos) => setForm((f) => ({ ...f, latitude: pos.coords.latitude.toString(), longitude: pos.coords.longitude.toString() })),
       () => toast.error("Could not get your location"),
     );
+  };
+
+  const handleAvatarUpload = async (url: string) => {
+    if (!user) return;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ avatar_url: url })
+      .eq("id", user.id);
+
+    if (error) toast.error(error.message);
+    else setForm((prev) => ({ ...prev, avatar_url: url }));
   };
 
   const handleSave = async () => {
@@ -84,8 +98,19 @@ function ClientProfilePage() {
     <DashboardLayout title="Profile" nav={clientNav}>
       <div className="mx-auto max-w-2xl">
         <Card className="border-border bg-gradient-card p-8">
-          <h2 className="font-display text-2xl font-bold">Your fitness profile</h2>
-          <p className="mt-1 text-sm text-muted-foreground">We use this to match you with the best trainers.</p>
+          <div className="flex flex-col items-center justify-center mb-8 border-b border-border/50 pb-8">
+            <h2 className="font-display text-2xl font-bold">Your fitness profile</h2>
+            <p className="mt-1 text-sm text-muted-foreground">We use this to match you with the best trainers.</p>
+            <div className="mt-6">
+              {user && (
+                <AvatarUpload
+                  url={form.avatar_url}
+                  uid={user.id}
+                  onUpload={handleAvatarUpload}
+                />
+              )}
+            </div>
+          </div>
 
           {loading ? (
             <p className="mt-8 text-sm text-muted-foreground">Loading...</p>

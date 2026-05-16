@@ -8,7 +8,7 @@ export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
     meta: [
-      { title: "LachaFit — Smart Fitness Trainer Matching" },
+      { title: "Fitder — Smart Fitness Trainer Matching" },
       { name: "description", content: "AI-powered platform connecting you with the perfect personal trainer based on your goals, budget, location, and schedule." },
     ],
   }),
@@ -30,8 +30,8 @@ function LandingPage() {
             <h1 className="font-display text-5xl font-bold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
               Find your perfect <span className="text-gradient">personal trainer</span>
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-white/70 sm:text-xl">
-              LachaFit matches you with certified trainers based on your goals, budget, schedule and location — then nails your form with real-time AI posture coaching.
+            <p className="mt-6 max-w-2xl text-lg text-white/80 sm:text-xl">
+              Fitder matches you with certified trainers based on your goals, budget, schedule and location — then nails your form with real-time AI posture coaching.
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
               <Button asChild size="lg" className="bg-gradient-primary text-primary-foreground shadow-glow hover:opacity-90">
@@ -70,7 +70,7 @@ function LandingPage() {
       <section className="mx-auto max-w-7xl px-4 pb-24 sm:px-6">
         <div className="overflow-hidden rounded-3xl bg-gradient-hero p-12 text-center text-white shadow-elegant sm:p-16">
           <h2 className="font-display text-4xl font-bold tracking-tight sm:text-5xl">Ready to train with intent?</h2>
-          <p className="mx-auto mt-4 max-w-xl text-white/70">Join LachaFit as a client and get your top-matched trainers, or sign up as a trainer to grow your practice.</p>
+          <p className="mx-auto mt-4 max-w-xl text-white/70">Join Fitder as a client and get your top-matched trainers, or sign up as a trainer to grow your practice.</p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Button asChild size="lg" className="bg-gradient-primary text-primary-foreground shadow-glow hover:opacity-90">
               <Link to="/register">Join as client</Link>
@@ -83,7 +83,7 @@ function LandingPage() {
       </section>
 
       <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">
-        © {new Date().getFullYear()} LachaFit. Train smart.
+        © {new Date().getFullYear()} Fitder. Train smart.
       </footer>
     </div>
   );

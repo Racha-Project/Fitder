@@ -27,7 +27,7 @@ export function DashboardLayout({ title, nav, children }: DashboardLayoutProps) 
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-primary">
             <Dumbbell className="h-4 w-4 text-primary-foreground" />
           </div>
-          <span className="font-display text-lg font-bold">LachaFit</span>
+          <span className="font-display text-lg font-bold">Fitder</span>
         </Link>
         <nav className="flex-1 space-y-1 p-3">
           {nav.map((item) => {

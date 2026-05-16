@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type BookingStatus = Database["public"]["Enums"]["booking_status"];
 
@@ -19,7 +20,7 @@ interface BookingRow {
   total_price: number;
   notes: string | null;
   created_at: string;
-  client: { full_name: string | null; email: string | null } | null;
+  client: { full_name: string | null; email: string | null; avatar_url: string | null } | null;
   slot: {
     start_time: string;
     end_time: string;
@@ -48,6 +49,7 @@ function TrainerBookingsPage() {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [avatarUrls, setAvatarUrls] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!authLoading && role && role !== "trainer") {
@@ -63,14 +65,31 @@ function TrainerBookingsPage() {
       .select(
         `
         id, slot_id, booking_status, total_price, notes, created_at,
-        client:profiles!bookings_client_id_fkey (full_name, email),
+        client:profiles!bookings_client_id_fkey (full_name, email, avatar_url),
         slot:availability_slots!bookings_slot_id_fkey (start_time, end_time, date, day_of_week, is_recurring)
       `,
       )
       .eq("trainer_id", user.id)
       .order("created_at", { ascending: false });
     if (error) toast.error(error.message);
-    else setBookings((data as BookingRow[]) ?? []);
+    else {
+      const rows = (data as BookingRow[]) ?? [];
+      setBookings(rows);
+
+      // Fetch avatar public URLs
+      const urls: Record<string, string> = {};
+      const paths = rows
+        .map((b) => b.client?.avatar_url)
+        .filter((p): p is string => !!p && !p.startsWith("http"));
+      
+      await Promise.all(
+        paths.map(async (path) => {
+          const { data } = await supabase.storage.from("avatars").getPublicUrl(path);
+          if (data) urls[path] = data.publicUrl;
+        })
+      );
+      setAvatarUrls(urls);
+    }
     setLoading(false);
   }, [user]);
 
@@ -78,19 +97,18 @@ function TrainerBookingsPage() {
     void loadBookings();
   }, [loadBookings]);
 
+  const getAvatarUrl = (path: string | null) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    return avatarUrls[path] || "";
+  };
+
   const updateStatus = async (booking: BookingRow, status: BookingStatus) => {
     const { error } = await supabase
       .from("bookings")
       .update({ booking_status: status })
       .eq("id", booking.id);
     if (error) return toast.error(error.message);
-
-    if (status === "accepted") {
-      await supabase.from("availability_slots").update({ is_booked: true }).eq("id", booking.slot_id);
-    }
-    if (status === "rejected" || status === "cancelled") {
-      await supabase.from("availability_slots").update({ is_booked: false }).eq("id", booking.slot_id);
-    }
 
     toast.success(`Booking ${status}`);
     void loadBookings();
@@ -120,11 +138,19 @@ function TrainerBookingsPage() {
           bookings.map((b) => (
             <Card key={b.id} className="border-border bg-gradient-card p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="font-semibold">{b.client?.full_name ?? "Client"}</p>
-                  <p className="text-sm text-muted-foreground">{b.client?.email}</p>
-                  <p className="mt-2 text-sm">{formatWhen(b)}</p>
-                  {b.notes && <p className="mt-1 text-sm italic text-muted-foreground">&ldquo;{b.notes}&rdquo;</p>}
+                <div className="flex gap-4">
+                  <Avatar className="h-12 w-12 rounded-xl border-2 border-primary/10">
+                    <AvatarImage src={getAvatarUrl(b.client?.avatar_url || null)} />
+                    <AvatarFallback className="bg-gradient-primary text-lg font-bold text-primary-foreground">
+                      {(b.client?.full_name ?? "C").charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-semibold">{b.client?.full_name ?? "Client"}</p>
+                    <p className="text-sm text-muted-foreground">{b.client?.email}</p>
+                    <p className="mt-2 text-sm">{formatWhen(b)}</p>
+                    {b.notes && <p className="mt-1 text-sm italic text-muted-foreground">&ldquo;{b.notes}&rdquo;</p>}
+                  </div>
                 </div>
                 <div className="text-right">
                   <Badge variant={STATUS_VARIANT[b.booking_status]}>{b.booking_status}</Badge>

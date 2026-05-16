@@ -8,6 +8,8 @@ export interface TrainerStats {
   rating: number | null;
   totalReviews: number;
   completedEarnings: number;
+  totalCommission: number;
+  netEarnings: number;
 }
 
 const emptyStats: TrainerStats = {
@@ -17,6 +19,8 @@ const emptyStats: TrainerStats = {
   rating: null,
   totalReviews: 0,
   completedEarnings: 0,
+  totalCommission: 0,
+  netEarnings: 0,
 };
 
 export function useTrainerStats(trainerId: string | undefined) {
@@ -30,7 +34,7 @@ export function useTrainerStats(trainerId: string | undefined) {
     const [bookingsRes, profileRes] = await Promise.all([
       supabase
         .from("bookings")
-        .select("id, client_id, booking_status, total_price")
+        .select("id, client_id, booking_status, total_price, commission_amount, trainer_net_amount")
         .eq("trainer_id", trainerId),
       supabase
         .from("trainer_profiles")
@@ -45,9 +49,11 @@ export function useTrainerStats(trainerId: string | undefined) {
       (b) => b.booking_status === "accepted" || b.booking_status === "pending",
     ).length;
     const clientIds = new Set(bookings.map((b) => b.client_id));
-    const earnings = bookings
-      .filter((b) => b.booking_status === "completed")
-      .reduce((sum, b) => sum + Number(b.total_price ?? 0), 0);
+    
+    const completedBookings = bookings.filter((b) => b.booking_status === "completed");
+    const earnings = completedBookings.reduce((sum, b) => sum + Number(b.total_price ?? 0), 0);
+    const commission = completedBookings.reduce((sum, b) => sum + Number(b.commission_amount ?? 0), 0);
+    const net = completedBookings.reduce((sum, b) => sum + Number(b.trainer_net_amount ?? 0), 0);
 
     setStats({
       pendingBookings: pending,
@@ -56,6 +62,8 @@ export function useTrainerStats(trainerId: string | undefined) {
       rating: profileRes.data?.rating != null ? Number(profileRes.data.rating) : null,
       totalReviews: profileRes.data?.total_reviews ?? 0,
       completedEarnings: earnings,
+      totalCommission: commission,
+      netEarnings: net,
     });
     setLoading(false);
   }, [trainerId]);

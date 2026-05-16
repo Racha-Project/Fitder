@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { AvatarUpload } from "@/components/avatar-upload";
+import { StarRating } from "@/components/star-rating";
 
 export const Route = createFileRoute("/_authenticated/trainer/profile")({
   component: TrainerProfilePage,
@@ -33,7 +35,9 @@ function TrainerProfilePage() {
     gym_name: "",
     latitude: "",
     longitude: "",
+    avatar_url: "" as string | null,
   });
+  const [reviews, setReviews] = useState<any[]>([]);
 
   useEffect(() => {
     if (!authLoading && role && role !== "trainer") {
@@ -44,12 +48,18 @@ function TrainerProfilePage() {
   useEffect(() => {
     if (!user) return;
     void (async () => {
-      const [profileRes, trainerRes] = await Promise.all([
+      const [profileRes, trainerRes, reviewsRes] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
         supabase.from("trainer_profiles").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase
+          .from("reviews")
+          .select("id, rating, comment, created_at, client:profiles!reviews_client_id_fkey(full_name)")
+          .eq("trainer_id", user.id)
+          .order("created_at", { ascending: false }),
       ]);
       const p = profileRes.data;
       const t = trainerRes.data;
+      setReviews(reviewsRes.data || []);
       setForm({
         full_name: p?.full_name ?? "",
         bio: t?.bio ?? "",
@@ -62,6 +72,7 @@ function TrainerProfilePage() {
         gym_name: t?.gym_name ?? "",
         latitude: p?.latitude?.toString() ?? "",
         longitude: p?.longitude?.toString() ?? "",
+        avatar_url: p?.avatar_url ?? null,
       });
       setLoading(false);
     })();
@@ -78,6 +89,17 @@ function TrainerProfilePage() {
         })),
       () => toast.error("Could not get your location"),
     );
+  };
+
+  const handleAvatarUpload = async (url: string) => {
+    if (!user) return;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ avatar_url: url })
+      .eq("id", user.id);
+
+    if (error) toast.error(error.message);
+    else setForm((prev) => ({ ...prev, avatar_url: url }));
   };
 
   const handleSave = async () => {
@@ -138,8 +160,19 @@ function TrainerProfilePage() {
     <DashboardLayout title="Trainer Profile" nav={trainerNav}>
       <div className="mx-auto max-w-2xl">
         <Card className="border-border bg-gradient-card p-8">
-          <h2 className="font-display text-2xl font-bold">Your coach profile</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Clients see this when matching and booking.</p>
+          <div className="flex flex-col items-center justify-center mb-8 border-b border-border/50 pb-8">
+            <h2 className="font-display text-2xl font-bold">Your coach profile</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Clients see this when matching and booking.</p>
+            <div className="mt-6">
+              {user && (
+                <AvatarUpload
+                  url={form.avatar_url}
+                  uid={user.id}
+                  onUpload={handleAvatarUpload}
+                />
+              )}
+            </div>
+          </div>
 
           {loading ? (
             <p className="mt-8 text-sm text-muted-foreground">Loading...</p>
@@ -222,6 +255,26 @@ function TrainerProfilePage() {
             </div>
           )}
         </Card>
+
+        {reviews.length > 0 && (
+          <Card className="mt-8 border-border bg-gradient-card p-8">
+            <h3 className="font-display text-2xl font-bold">Client Reviews</h3>
+            <div className="mt-6 space-y-6">
+              {reviews.map((r) => (
+                <div key={r.id} className="border-b border-border/50 pb-6 last:border-0 last:pb-0">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold">{r.client?.full_name ?? "Anonymous Client"}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(r.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <StarRating rating={r.rating} size="sm" className="mt-1" />
+                  {r.comment && <p className="mt-2 text-sm text-muted-foreground italic">&ldquo;{r.comment}&rdquo;</p>}
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
       </div>
     </DashboardLayout>
   );

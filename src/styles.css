@@ -49,7 +49,7 @@
 :root {
   --radius: 0.875rem;
 
-  /* LachaFit palette: deep slate + energetic orange + lime accent */
+  /* Fitder palette: deep slate + energetic orange + lime accent */
   --background: oklch(0.985 0.005 240);
   --foreground: oklch(0.18 0.04 250);
 

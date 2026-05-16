@@ -6,12 +6,14 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { trainerNav } from "@/lib/trainer-nav";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface ClientSummary {
   id: string;
   full_name: string | null;
   email: string | null;
   fitness_goal: string | null;
+  avatar_url: string | null;
   sessionCount: number;
 }
 
@@ -24,6 +26,7 @@ function TrainerClientsPage() {
   const navigate = useNavigate();
   const [clients, setClients] = useState<ClientSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [avatarUrls, setAvatarUrls] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!authLoading && role && role !== "trainer") {
@@ -53,24 +56,45 @@ function TrainerClientsPage() {
     const ids = [...counts.keys()];
     const { data: profiles } = await supabase
       .from("profiles")
-      .select("id, full_name, email, fitness_goal")
+      .select("id, full_name, email, fitness_goal, avatar_url")
       .in("id", ids);
 
-    setClients(
-      (profiles ?? []).map((p) => ({
-        id: p.id,
-        full_name: p.full_name,
-        email: p.email,
-        fitness_goal: p.fitness_goal,
-        sessionCount: counts.get(p.id) ?? 0,
-      })),
+    const clientData = (profiles ?? []).map((p) => ({
+      id: p.id,
+      full_name: p.full_name,
+      email: p.email,
+      fitness_goal: p.fitness_goal,
+      avatar_url: p.avatar_url,
+      sessionCount: counts.get(p.id) ?? 0,
+    }));
+
+    setClients(clientData);
+
+    // Fetch avatar public URLs
+    const urls: Record<string, string> = {};
+    const paths = clientData
+      .map((c) => c.avatar_url)
+      .filter((p): p is string => !!p && !p.startsWith("http"));
+    
+    await Promise.all(
+      paths.map(async (path) => {
+        const { data } = await supabase.storage.from("avatars").getPublicUrl(path);
+        if (data) urls[path] = data.publicUrl;
+      })
     );
+    setAvatarUrls(urls);
     setLoading(false);
   }, [user]);
 
   useEffect(() => {
     void loadClients();
   }, [loadClients]);
+
+  const getAvatarUrl = (path: string | null) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    return avatarUrls[path] || "";
+  };
 
   return (
     <DashboardLayout title="Clients" nav={trainerNav}>
@@ -86,9 +110,12 @@ function TrainerClientsPage() {
           clients.map((c) => (
             <Card key={c.id} className="flex items-center justify-between border-border bg-gradient-card p-5">
               <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-primary font-display text-lg font-bold text-primary-foreground">
-                  {(c.full_name ?? "C").charAt(0).toUpperCase()}
-                </div>
+                <Avatar className="h-12 w-12 rounded-xl border-2 border-primary/10">
+                  <AvatarImage src={getAvatarUrl(c.avatar_url)} />
+                  <AvatarFallback className="bg-gradient-primary text-lg font-bold text-primary-foreground">
+                    {(c.full_name ?? "C").charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
                 <div>
                   <p className="font-semibold">{c.full_name ?? "Client"}</p>
                   <p className="text-sm text-muted-foreground">{c.email}</p>

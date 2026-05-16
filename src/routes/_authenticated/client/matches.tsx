@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { Loader2, MapPin, RefreshCw, Sparkles, Star } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Loader2, MapPin, RefreshCw, Sparkles, Star, Calendar as CalendarIcon } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useTrainerMatches } from "@/hooks/use-trainer-matches";
+import { useTrainerMatches, type TrainerMatchCard } from "@/hooks/use-trainer-matches";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { clientNav } from "@/lib/client-nav";
 import { BADGE_LABELS } from "@/lib/matching";
@@ -11,6 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
+import { BookingCalendar } from "@/components/booking-calendar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/client/matches")({
   component: ClientMatchesPage,
@@ -20,6 +23,8 @@ function ClientMatchesPage() {
   const { user, role, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { matches, loading, error, runMatching, loadSavedMatches } = useTrainerMatches(user?.id);
+  const [bookingTrainer, setBookingTrainer] = useState<TrainerMatchCard | null>(null);
+  const [avatars, setAvatars] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!authLoading && role && role !== "client") {
@@ -31,9 +36,36 @@ function ClientMatchesPage() {
     if (user) void loadSavedMatches();
   }, [user, loadSavedMatches]);
 
+  useEffect(() => {
+    const fetchAvatars = async () => {
+      const paths = matches
+        .map((m) => m.trainer.profile?.avatar_url)
+        .filter((p): p is string => !!p && !p.startsWith("http"));
+      
+      if (paths.length === 0) return;
+
+      const newAvatars: Record<string, string> = {};
+      await Promise.all(
+        paths.map(async (path) => {
+          const { data } = await supabase.storage.from("avatars").getPublicUrl(path);
+          if (data) newAvatars[path] = data.publicUrl;
+        })
+      );
+      setAvatars((prev) => ({ ...prev, ...newAvatars }));
+    };
+
+    if (matches.length > 0) fetchAvatars();
+  }, [matches]);
+
   const handleFindMatches = async () => {
     const ok = await runMatching();
     if (ok) toast.success("Matches updated");
+  };
+
+  const getAvatarUrl = (profile: any) => {
+    if (!profile.avatar_url) return "";
+    if (profile.avatar_url.startsWith("http")) return profile.avatar_url;
+    return avatars[profile.avatar_url] || "";
   };
 
   return (
@@ -97,9 +129,12 @@ function ClientMatchesPage() {
             <Card key={m.trainerId} className="border-border bg-gradient-card p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex gap-4">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-primary font-display text-lg font-bold text-primary-foreground">
-                    {(m.profile.full_name ?? "T").charAt(0).toUpperCase()}
-                  </div>
+                  <Avatar className="h-14 w-14 rounded-xl border-2 border-primary/10">
+                    <AvatarImage src={getAvatarUrl(m.profile)} alt={m.profile.full_name || ""} />
+                    <AvatarFallback className="bg-gradient-primary text-lg font-bold text-primary-foreground">
+                      {(m.profile.full_name ?? "T").charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="font-display text-lg font-semibold">{m.profile.full_name ?? "Trainer"}</h3>
@@ -118,8 +153,9 @@ function ClientMatchesPage() {
                       )}
                       {(m.trainer.rating ?? 0) > 0 && (
                         <span className="inline-flex items-center gap-1">
-                          <Star className="h-3 w-3 fill-primary text-primary" />
-                          {Number(m.trainer.rating).toFixed(1)}
+                          <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
+                          <span className="font-bold text-amber-600">{Number(m.trainer.rating).toFixed(1)}</span>
+                          <span className="text-[10px] text-muted-foreground">({m.trainer.total_reviews} reviews)</span>
                         </span>
                       )}
                       {m.distanceKm != null && (
@@ -147,17 +183,39 @@ function ClientMatchesPage() {
                 </div>
               </div>
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                <ScoreBar label="Goal fit" value={m.breakdown.goal} />
-                <ScoreBar label="Distance" value={m.breakdown.distance} />
-                <ScoreBar label="Availability" value={m.breakdown.availability} />
-                <ScoreBar label="Budget" value={m.breakdown.budget} />
-                <ScoreBar label="Specialty" value={m.breakdown.specialty} />
-                <ScoreBar label="Preferences" value={m.breakdown.preference} />
+              <div className="mt-5 grid gap-4 sm:grid-cols-4">
+                <div className="sm:col-span-3 grid gap-3 sm:grid-cols-3">
+                  <ScoreBar label="Goal fit" value={m.breakdown.goal} />
+                  <ScoreBar label="Distance" value={m.breakdown.distance} />
+                  <ScoreBar label="Availability" value={m.breakdown.availability} />
+                  <ScoreBar label="Budget" value={m.breakdown.budget} />
+                  <ScoreBar label="Specialty" value={m.breakdown.specialty} />
+                  <ScoreBar label="Preferences" value={m.breakdown.preference} />
+                </div>
+                <div className="flex items-end justify-end">
+                  <Button 
+                    onClick={() => setBookingTrainer(m)}
+                    className="w-full bg-gradient-primary text-primary-foreground"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    Book Session
+                  </Button>
+                </div>
               </div>
             </Card>
           ))}
         </div>
+
+        {user && bookingTrainer && (
+          <BookingCalendar
+            trainerId={bookingTrainer.trainerId}
+            trainerName={bookingTrainer.profile.full_name ?? "Trainer"}
+            pricePerSession={Number(bookingTrainer.trainer.price_per_session ?? 0)}
+            clientId={user.id}
+            isOpen={!!bookingTrainer}
+            onClose={() => setBookingTrainer(null)}
+          />
+        )}
       </div>
     </DashboardLayout>
   );
